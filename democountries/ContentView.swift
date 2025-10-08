@@ -4,17 +4,13 @@ struct ContentView: View {
     @State private var countries: [Country] = []
 
     var body: some View {
-        // Yes, en knapp
         Button {
-            Task {
-                await fetchCountries()
-            }
+            Task { await fetchCountries() }
         } label: {
             Text("Trykk på meg")
         }
         .buttonStyle(BorderedProminentButtonStyle())
 
-        // Liste ut alle land
         List {
             ForEach(countries) { country in
                 Section {
@@ -22,14 +18,28 @@ struct ContentView: View {
                     LabeledContent("Capital", value: country.capital.first ?? "")
                     LabeledContent("Population", value: "\(country.population)")
                     LabeledContent("Region", value: "\(country.region)")
+                    LabeledContent("Currency", value: currencyString(for: country))
                 }
             }
         }
     }
 
-    // En funksjon som henter data
+    /// Slå sammen alle valutaer til en streng.
+    ///
+    /// Tar alle valuter for et gitt land, og konkatinerer dem inn i en streng med.
+    ///
+    /// - Parameter country: Et gitt land.
+    /// - Returns: En string per valuta, per land. Eks.: NOK, Norwegian Krone (kr)
+    func currencyString(for country: Country) -> String {
+        country.currencies.map { code, info in
+            return "\(code), \(info.name) (\(info.symbol))"
+        }
+        .joined(separator: "\n")
+    }
+
+    /// Hent data fra API.
     func fetchCountries() async {
-        guard let url = URL(string: "https://restcountries.com/v3.1/all?fields=cca3,name,population,region,capital,flag,subregion") else {
+        guard let url = URL(string: "https://restcountries.com/v3.1/all?fields=cca3,name,population,region,capital,flag,subregion,currencies") else {
             return
         }
 
